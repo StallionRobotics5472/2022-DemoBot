@@ -4,9 +4,18 @@
 
 package frc.robot;
 
+import java.sql.SQLXML;
+
+import com.ctre.phoenix.motorcontrol.ControlMode;
+
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.LiftSubsystem;
+import frc.robot.subsystems.TransportSubsystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -18,6 +27,12 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
+  public static TransportSubsystem transport;
+  public static LiftSubsystem lift;
+  public static Limelight limelight;
+  public static Drivetrain drive;
+
+  //public static Drivetrain drive;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -28,6 +43,15 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    drive = new Drivetrain();
+    transport = new  TransportSubsystem();
+    lift = new LiftSubsystem();
+    limelight = new Limelight();
+    transport.rightDropper.getEncoder().setPosition(0);
+    transport.hood.getEncoder().setPosition(0);
+    lift.rightLift.getEncoder().setPosition(0);
+    lift.leftLift.getEncoder().setPosition(0);
+    CameraServer.startAutomaticCapture();
   }
 
   /**
@@ -56,7 +80,7 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+   // m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
@@ -81,7 +105,15 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    SmartDashboard.putNumber("drop1 value", transport.dropPostion1());
+    SmartDashboard.putNumber("drop2 value", transport.dropPostion2());
+    SmartDashboard.putNumber("rpm", transport.currentRPM());
+    SmartDashboard.putNumber("tx", limelight.getHorizontalAngle ());
+    SmartDashboard.putNumber("HOOD POSITION", transport.getHoodPosition());
+    SmartDashboard.putNumber("lift position", lift.getLiftPosition());
+    
+  } 
 
   @Override
   public void testInit() {
@@ -91,7 +123,10 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+
+
+  }
 
   /** This function is called once when the robot is first started up. */
   @Override

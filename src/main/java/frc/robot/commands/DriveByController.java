@@ -1,74 +1,103 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.commands;
 
-import frc.robot.Constants.*;
-import frc.robot.subsystems.Drivetrain;
-import frc.robot.utilities.MathUtils;
+import java.util.function.Supplier;
+
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
+import frc.robot.subsystems.Drivetrain;
+import frc.robot.utilities.MathUtils;
 
-/**
- * Implements a DriveByController command which extends the CommandBase class
- */
 public class DriveByController extends CommandBase {
-  private final Drivetrain m_robotDrive;
-  private final XboxController m_controller;
 
-  private final SlewRateLimiter m_slewX = new SlewRateLimiter(DriveConstants.kTranslationSlew);
-  private final SlewRateLimiter m_slewY = new SlewRateLimiter(DriveConstants.kTranslationSlew);
-  private final SlewRateLimiter m_slewRot = new SlewRateLimiter(DriveConstants.kRotationSlew);
+    private final Drivetrain swerveSubSystem;
+    private final XboxController m_controller;
+    private final SlewRateLimiter m_slewX = new SlewRateLimiter(Constants.kTranslationSlew);
+  private final SlewRateLimiter m_slewY = new SlewRateLimiter(Constants.kTranslationSlew);
+  private final SlewRateLimiter m_slewRot = new SlewRateLimiter(Constants.kRotationSlew);
+  private boolean fieldOrient = false;
+  //  private final Supplier<Double> xSpdFunction, ySpdFunction, turningSpdFunction; 
 
-  private boolean fieldOrient = true;
+  //  private final Supplier<Boolean> fieldOrientedFunction;
 
-  /**
-   * Contructs a DriveByController object which applys the driver inputs from the
-   * controller to the swerve drivetrain
-   * 
-   * @param drive      is the swerve drivetrain object which should be created in
-   *                   the RobotContainer class
-   * @param controller is the user input controller object for controlling the
-   *                   drivetrain
-   */
-  public DriveByController(Drivetrain drive, XboxController controller) {
-    m_robotDrive = drive; // Set the private member to the input drivetrain
-    m_controller = controller; // Set the private member to the input controller
-    addRequirements(m_robotDrive); // Because this will be used as a default command, add the subsystem which will
-                                   // use this as the default
+    
+
+  /*public SwerveJoystickCMD(SwerveSubSystem swerveSubsystem, Supplier<Double> xSpdFunction, Supplier<Double> ySpdFunction, 
+    Supplier<Double> turningSpdFunction, Supplier<Boolean> fieldOrientedFunction) {
+      this.swerveSubSystem = swerveSubsystem; 
+      this.xSpdFunction = xSpdFunction; 
+      this.ySpdFunction = ySpdFunction; 
+      this.turningSpdFunction = turningSpdFunction; 
+      this.fieldOrientedFunction = fieldOrientedFunction;
+      addRequirements(swerveSubsystem);
   }
+*/
+public DriveByController(Drivetrain drive, XboxController controller) {
+  swerveSubSystem = drive; // Set the private member to the input drivetrain
+  m_controller = controller; // Set the private member to the input controller
+  addRequirements(swerveSubSystem); // Because this will be used as a default command, add the subsystem which will
+                                 // use this as the default
+}
 
-  /**
-   * the execute function is overloaded with the function to drive the swerve
-   * drivetrain
-   */
+  
+  @Override
+  public void initialize() {}
+
+  
   @Override
   public void execute() {
-    m_robotDrive.drive(m_slewX.calculate(
+    swerveSubSystem.drive(m_slewX.calculate(
         -inputTransform(m_controller.getLeftY()))
-        * DriveConstants.kMaxSpeedMetersPerSecond,
+        * Constants.MAXDriveSpeed,
         m_slewY.calculate(
-            -inputTransform(m_controller.getLeftX()))
-            * DriveConstants.kMaxSpeedMetersPerSecond,
-        m_slewRot.calculate(-inputTransform(m_controller.getRightX()))
-            * DriveConstants.kMaxAngularSpeed,
+            inputTransform(m_controller.getLeftX()))
+            * Constants.MAXDriveSpeed,
+        m_slewRot.calculate(inputTransform(m_controller.getRightX()))
+            * Constants.kMaxAngularSpeed,
         fieldOrient);
 
         SmartDashboard.putBoolean("DrivingByController", true);
   }
+ /* public void execute() {
+    double xSpeed = xSpdFunction.get();
+    double ySpeed = ySpdFunction.get();
+    double turningSpeed = turningSpdFunction.get(); 
 
-  @Override
-  public void end(boolean interrupted){
-    SmartDashboard.putBoolean("DrivingByController", false);
+    xSpeed = Math.abs(xSpeed) > Constants.Deadband ? xSpeed : 0; 
+    ySpeed = Math.abs(ySpeed) > Constants.Deadband ? ySpeed : 0; 
+    turningSpeed = Math.abs(turningSpeed) > Constants.Deadband ? turningSpeed : 0; 
+    
+    ChassisSpeeds chassisSpeeds;
+    /* if (fieldOrientedFunction.get()) {
+       // Relative to field
+       chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+               xSpeed, ySpeed, turningSpeed);
+     } else {
+       // Relative to robot
+       chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, turningSpeed);
+     }
+     */
+   /* chassisSpeeds = new ChassisSpeeds(xSpeed, ySpeed, turningSpeed);
 
+    SwerveModuleState[] moduleStates = Constants.kDriveKinematics.toSwerveModuleStates(chassisSpeeds); 
+
+    swerveSubSystem.setModuleState(moduleStates);
+    
   }
-
-  /**
-   * when this fucntion of the command is called the current fieldOrient boolean
-   * is flipped. This
-   * is fed into the drive command for the swerve drivetrain so the driver can
-   * decide to drive in
-   * a robot oreinted when they please (not recommended in most instances)
-   */
+*/
+  @Override
+  public void end(boolean interrupted) {
+    Drivetrain.stopModules();
+  }
   public void changeFieldOrient() {
     if (fieldOrient) {
       fieldOrient = false;
@@ -76,21 +105,12 @@ public class DriveByController extends CommandBase {
       fieldOrient = true;
     }
   }
-
-  /**
-   * This function takes the user input from the controller analog sticks, applys
-   * a deadband and then quadratically
-   * transforms the input so that it is easier for the user to drive, this is
-   * especially important on high torque motors
-   * such as the NEOs or Falcons as it makes it more intuitive and easier to make
-   * small corrections
-   * 
-   * @param input is the input value from the controller axis, should be a value
-   *              between -1.0 and 1.0
-   * @return the transformed input value
-   */
   private double inputTransform(double input) {
     return MathUtils.singedSquare(MathUtils.applyDeadband(input));
   }
 
+  @Override
+  public boolean isFinished() {
+    return false;
+  }
 }

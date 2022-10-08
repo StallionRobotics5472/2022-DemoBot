@@ -1,5 +1,6 @@
 package frc.robot.utilities;
 
+import frc.robot.Constants;
 import frc.robot.Constants.*;
 
 /**
@@ -43,9 +44,9 @@ public class MathUtils {
    * @return the resulting input after applying the deadband
    */
   public static double applyDeadband(double input) {
-    if (Math.abs(input) < DriveConstants.kInnerDeadband) {
+    if (Math.abs(input) < Constants.kInnerDeadband) {
       return 0.0;
-    } else if (Math.abs(input) > DriveConstants.kOuterDeadband) {
+    } else if (Math.abs(input) > Constants.kOuterDeadband) {
       return Math.signum(input) * 1.0;
     } else {
       return input;
